@@ -31,3 +31,7 @@ NetworkX and matplotlib for graph visualization
 
 # Conclusion:
 A complete bioinformatics toolkit that can assist researchers in genetic analysis, mutation identification, and species comparison using graphical and algorithmic methods.
+
+# Note:
+download all the python files in same folder alonside with fasta data folder in the same folder as other python files and then execute the final code python file.
+
