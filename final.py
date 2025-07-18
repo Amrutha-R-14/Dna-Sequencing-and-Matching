@@ -7,7 +7,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from print_string_sequence import print_string_sequence
 from Sequence import Sequence
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 class DNASequence:
     def __init__(self, data_path):
         self.Data = ""
@@ -36,23 +36,28 @@ def hamming_distance(seq1, seq2):
     return sum(1 for item in diff if item.startswith('-'))
 
 def generate_weighted_graph(species):
-    G = nx.DiGraph()
+  G = nx.DiGraph()
 
-    # Define edges and weights based on Hamming distance
-    edges_weights = []
-    keys = list(species.keys())
-    for i in range(len(keys)):
-        for j in range(i + 1, len(keys)):
-            source = keys[i]
-            target = keys[j]
-            weight = hamming_distance(species[source], species[target])
-            edges_weights.append((source, target, weight))
+  # Define edges and weights based on Hamming distance
+  edges_weights = []
+  keys = list(species.keys())
+  for i in range(len(keys)):
+    for j in range(i + 1, len(keys)):
+      source = keys[i]
+      target = keys[j]
+      weight = hamming_distance(species[source], species[target])
+      edges_weights.append((source, target, weight))
 
-    # Add edges to the graph with weights
-    for source, target, weight in edges_weights:
-        G.add_edge(source, target, weight=weight)
+  # Check if only one sequence exists
+  if len(keys) == 1:
+     print("Cannot generate a weighted graph with only one sequence as input.")
 
-    return G
+  # Add edges to the graph with weights
+  for source, target, weight in edges_weights:
+    G.add_edge(source, target, weight=weight)
+
+  return G
+
 
 class RedirectText(io.StringIO):
     def __init__(self, widget):
@@ -62,7 +67,7 @@ class RedirectText(io.StringIO):
         self.widget.insert(tk.END, s)
         self.widget.see(tk.END)
 
-# Save the original standard output
+
 original_stdout = sys.stdout
 
 # GUI setup
@@ -92,7 +97,7 @@ def bm_approx_matching():
         while i <= txlen - patlen:
             mismc = 0
 
-            # Separated loop for mismc calculation
+            # Separated loop for mismatch calculation
             for j in range(patlen):
                 if i + j < txlen and pat.getItr(j) != tx.getItr(i + j):
                     mismc += 1
@@ -226,16 +231,16 @@ def create_phylogenetic_tree():
         print(tree)
         print("===============================================================")
 
-        # Create a weighted graph
+        # Creates a weighted graph
         G = nx.DiGraph()
 
-    # Existing code...
 
-        # Add nodes
+
+        # Added nodes
         for node in tree:
             G.add_node(node)
 
-        # Add edges with weights
+        # Added edges with weights
         for i in range(num_files):
             for j in range(i + 1, num_files):
                 species1 = f"Species{i + 1}"
@@ -261,13 +266,13 @@ def smith_waterman_alignment():
         r = seq1.getSize()
         c = seq2.getSize()
 
-        # First loop: Creating an empty matrix with zeros
+       
         sm = [[0] * c for _ in range(r)]
 
         maxs = 0
         maxsp = (0, 0)
 
-        # The rest of the code remains unchanged
+      
         for i in range(1, r):
             for j in range(1, c):
                 curr_1 = seq1.getItr(i)
@@ -322,7 +327,7 @@ def smith_waterman_alignment():
         "gap": {"gap": -1}
     }
 
-    file_paths = [select_file_and_display_hint(i) for i in range(2)]  # Adjust the number of sequences as needed
+    file_paths = [select_file_and_display_hint(i) for i in range(2)]  
     seq1 = Sequence(file_paths[0])
     seq2 = Sequence(file_paths[1])
     print("\nSmith-Waterman Alignment:")
@@ -334,11 +339,11 @@ def smith_waterman_alignment():
 def detect_mutations():
     def detmut(seq, mutseq):
         def hamdis(seq1, seq2):
-            return sum(1 for i in range(seq1.getSize()) if seq1.getItr(i) != seq2.getItr(i))
+            return sum(1 for i in range(min(seq1.getSize(),seq2.getSize())) if seq1.getItr(i) != seq2.getItr(i))
 
         # Calculate Hamming distance and sequence length
         hamdist = hamdis(seq, mutseq)
-        seqlen = seq.getSize()
+        seqlen = min(seq.getSize(),mutseq.getSize())
 
         # Print mutation detection using Hamming distance
         print("Hamming Distance between sequences:", hamdist)
@@ -360,66 +365,72 @@ def detect_mutations():
         else:
             print("\nNo mutations detected.")
 
-    file_paths = [select_file_and_display_hint(i) for i in range(2)]  # Adjust the number of sequences as needed
+    file_paths = [select_file_and_display_hint(i) for i in range(2)]  
     seq = Sequence(file_paths[0])
     mutseq = Sequence(file_paths[1])
     detmut(seq, mutseq)
 
-# Function to execute and redirect output to GUI
 
-
-# Function to generate the weighted graph
 def draw_weighted_graph():
     file_paths = [select_file_and_display_hint(i) for i in range(int(entry_num_files.get()))]
     species = {f"Species{i + 1}": DNASequence(file_path) for i, file_path in enumerate(file_paths) if file_path}
     weighted_phylogenetic_graph = generate_weighted_graph(species)
 
-    # Draw the graph
+    fig, ax = plt.subplots(figsize=(18, 22))
+
     pos = nx.spring_layout(weighted_phylogenetic_graph)
     labels = nx.get_edge_attributes(weighted_phylogenetic_graph, 'weight')
-    nx.draw(weighted_phylogenetic_graph, pos, with_labels=True, font_weight='bold')
-    nx.draw_networkx_edge_labels(weighted_phylogenetic_graph, pos, edge_labels=labels)
-    plt.show()
+    nx.draw(weighted_phylogenetic_graph, pos, with_labels=True, font_weight='bold', ax=ax)
+    nx.draw_networkx_edge_labels(weighted_phylogenetic_graph, pos, edge_labels=labels, ax=ax)
 
-# Function to execute and redirect output to GUI
+    
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.pack()
+
+    
+    root.mainloop()
+
+
+
 def execute_and_redirect(func):
-    # Redirect standard output to the GUI
+    # Redirects standard output to the GUI
     output_text.config(state=tk.NORMAL)
     output_text.delete(1.0, tk.END)
     sys.stdout = RedirectText(output_text)
 
-    # Call the function
+    # Calls the function
     func()
 
-    # Restore the original standard output
+    # Restores the original standard output
     sys.stdout = original_stdout
     output_text.config(state=tk.DISABLED)
 
-# Create labels and entry widgets for input
-label_num_files = Label(root, text="Number of Files for Phylogenetic Tree:")
+# Creates labels and entry widgets for input
+label_num_files = Label(root, text="Number of Files for Phylogenetic Tree or Weighted Graph:")
 label_num_files.pack(pady=5)
 entry_num_files = Entry(root)
 entry_num_files.pack(pady=5)
 
 
-# Create buttons for each function
-bm_button = tk.Button(root, text="Boyer-Moore Matching", command=lambda: execute_and_redirect(bm_approx_matching))
+# Creates buttons for each function
+bm_button = tk.Button(root, text="Approximate Matching", command=lambda: execute_and_redirect(bm_approx_matching))
 bm_button.pack(pady=10)
 
-phylo_button = tk.Button(root, text="Create Phylogenetic Tree", command=lambda: execute_and_redirect(create_phylogenetic_tree))
+phylo_button = tk.Button(root, text="Phylogenetic Tree Generation", command=lambda: execute_and_redirect(create_phylogenetic_tree))
 phylo_button.pack(pady=10)
 
-sw_button = tk.Button(root, text="Smith-Waterman Alignment", command=lambda: execute_and_redirect(smith_waterman_alignment))
+sw_button = tk.Button(root, text="Sequence Alignment", command=lambda: execute_and_redirect(smith_waterman_alignment))
 sw_button.pack(pady=10)
 
-mut_button = tk.Button(root, text="Detect Mutations", command=lambda: execute_and_redirect(detect_mutations))
+mut_button = tk.Button(root, text="Mutation Detection", command=lambda: execute_and_redirect(detect_mutations))
 mut_button.pack(pady=10)
 
-# Create buttons for each function
-weighted_graph_button = tk.Button(root, text="Generate Weighted Graph", command=lambda: execute_and_redirect(draw_weighted_graph))
+# Creates buttons for each function
+weighted_graph_button = tk.Button(root, text="Weighted Graph Generation", command=lambda: execute_and_redirect(draw_weighted_graph))
 weighted_graph_button.pack(pady=10)
 
-# Create a scrolled text widget for output
+# Creates a scrolled text widget for output
 output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=80, height=20)
 output_text.pack(pady=10)
 
