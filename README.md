@@ -5,13 +5,13 @@ This project is a genetic analysis application that performs exact and approxima
 
 Technologies and Algorithms Used:
 
-Smith-Waterman Algorithm (for local alignment)
+- Smith-Waterman Algorithm (for local alignment)
 
-Boyer-Moore Algorithm (for approximate pattern matching)
+- Boyer-Moore Algorithm (for approximate pattern matching)
 
-Hamming Distance (for mutation detection)
+- Hamming Distance (for mutation detection)
 
-UPGMA (for phylogenetic tree construction)
+- UPGMA (for phylogenetic tree construction)
 
 Tkinter GUI
 
@@ -19,15 +19,15 @@ NetworkX and matplotlib for graph visualization
 
 # Key Features:
 
-Matches two DNA sequences for exact and approximate results
+- Matches two DNA sequences for exact and approximate results
 
-Detects point mutations, useful in early cancer detection
+- Detects point mutations, useful in early cancer detection
 
-Creates evolutionary trees based on genetic distances
+- Creates evolutionary trees based on genetic distances
 
-Visualizes sequences as weighted graphs
+- Visualizes sequences as weighted graphs
 
-GUI for ease of interaction
+- GUI for ease of interaction
 
 # Conclusion:
 A complete bioinformatics toolkit that can assist researchers in genetic analysis, mutation identification, and species comparison using graphical and algorithmic methods.
